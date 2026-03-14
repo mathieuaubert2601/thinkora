@@ -11,7 +11,6 @@ import StudentDashboard from "./pages/StudentDashboard";
 import StudentSettings from "./pages/StudentSettings";
 import StudentAnalytics from "./pages/StudentAnalytics";
 import HomeworkSubmission from "./pages/HomeworkSubmission";
-import PersonalizedLearning from "./pages/PersonalizedLearning";
 import TailoredTask from "./pages/TailoredTask";
 
 export const router = createBrowserRouter([
@@ -64,11 +63,7 @@ export const router = createBrowserRouter([
     Component: HomeworkSubmission,
   },
   {
-    path: "/student/learning",
-    Component: PersonalizedLearning,
-  },
-  {
-    path: "/student/task/:id",
+    path: "/student/task",
     Component: TailoredTask,
   },
 ]);

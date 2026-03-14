@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TeacherLayout from "../components/TeacherLayout";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
-import { AlertCircle, TrendingUp, TrendingDown, Eye, EyeOff, Users, User, BookOpen, Video, Headphones, Image as ImageIcon, Lock, CheckCircle, Clock, Circle, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle, TrendingUp, TrendingDown, Eye, EyeOff, Users, User, BookOpen, Video, Headphones, Image as ImageIcon, Lock, CheckCircle, Clock, Circle, ChevronDown, ChevronUp, Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { analyzeErrorPatterns } from "../../lib/gemini";
 
 type ViewMode = "class" | "student";
 
@@ -11,6 +12,12 @@ type CompetencyStatus = {
   status: "mastered" | "in-progress" | "not-mastered";
 };
 
+type ErrorPattern = {
+  pattern: string;
+  affected: number;
+  severity: "high" | "medium" | "low";
+};
+
 export default function Analytics() {
   const [viewMode, setViewMode] = useState<ViewMode>("class");
   const [selectedForRadar, setSelectedForRadar] = useState<number | null>(null);
@@ -18,6 +25,8 @@ export default function Analytics() {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedStudentView, setSelectedStudentView] = useState("");
   const [showDetailedView, setShowDetailedView] = useState(false);
+  const [errorPatterns, setErrorPatterns] = useState<ErrorPattern[]>([]);
+  const [analyzingErrors, setAnalyzingErrors] = useState(false);
   const [visibleLayers, setVisibleLayers] = useState({
     classAvg: true,
     best: true,
@@ -42,56 +51,20 @@ export default function Analytics() {
     : [];
 
   const conceptData = [
-    { 
-      concept: "Linear Equations", 
-      classAvg: 85, 
-      student: 72,
-      best: 98,
-      worst: 45
-    },
-    { 
-      concept: "Quadratic Functions", 
-      classAvg: 78, 
-      student: 68,
-      best: 95,
-      worst: 38
-    },
-    { 
-      concept: "Polynomials", 
-      classAvg: 82, 
-      student: 88,
-      best: 97,
-      worst: 52
-    },
-    { 
-      concept: "Graphing", 
-      classAvg: 75, 
-      student: 70,
-      best: 92,
-      worst: 41
-    },
-    { 
-      concept: "Systems", 
-      classAvg: 80, 
-      student: 75,
-      best: 96,
-      worst: 48
-    },
-    { 
-      concept: "Factoring", 
-      classAvg: 88, 
-      student: 92,
-      best: 99,
-      worst: 55
-    },
+    { concept: "Linear Equations", classAvg: 85, student: 72, best: 98, worst: 45 },
+    { concept: "Quadratic Functions", classAvg: 78, student: 68, best: 95, worst: 38 },
+    { concept: "Polynomials", classAvg: 82, student: 88, best: 97, worst: 52 },
+    { concept: "Graphing", classAvg: 75, student: 70, best: 92, worst: 41 },
+    { concept: "Systems", classAvg: 80, student: 75, best: 96, worst: 48 },
+    { concept: "Factoring", classAvg: 88, student: 92, best: 99, worst: 55 },
   ];
 
   const students = [
-    { 
-      id: 1, 
-      name: "Emma Johnson", 
-      score: 78, 
-      trend: "up", 
+    {
+      id: 1,
+      name: "Emma Johnson",
+      score: 78,
+      trend: "up",
       mastery: 75,
       learningChannels: ["Text", "Video"],
       hobbies: ["Reading", "Music"],
@@ -126,11 +99,11 @@ export default function Analytics() {
         ],
       },
     },
-    { 
-      id: 2, 
-      name: "Liam Smith", 
-      score: 85, 
-      trend: "up", 
+    {
+      id: 2,
+      name: "Liam Smith",
+      score: 85,
+      trend: "up",
       mastery: 82,
       learningChannels: ["Video", "Images"],
       hobbies: ["Sports", "Gaming"],
@@ -165,11 +138,11 @@ export default function Analytics() {
         ],
       },
     },
-    { 
-      id: 3, 
-      name: "Sophia Davis", 
-      score: 72, 
-      trend: "down", 
+    {
+      id: 3,
+      name: "Sophia Davis",
+      score: 72,
+      trend: "down",
       mastery: 68,
       learningChannels: ["Audio", "Text"],
       hobbies: ["Art", "Dance"],
@@ -206,23 +179,23 @@ export default function Analytics() {
     },
   ];
 
-  const errorPatterns = [
-    {
-      pattern: "Sign errors in negative number operations",
-      affected: 12,
-      severity: "high",
-    },
-    {
-      pattern: "Forgetting to distribute when expanding brackets",
-      affected: 8,
-      severity: "medium",
-    },
-    {
-      pattern: "Confusion with order of operations",
-      affected: 5,
-      severity: "low",
-    },
-  ];
+  const handleAnalyzeErrors = async () => {
+    setAnalyzingErrors(true);
+    try {
+      const patterns = await analyzeErrorPatterns(students);
+      setErrorPatterns(patterns);
+    } catch (e) {
+      console.error("Analysis failed", e);
+    } finally {
+      setAnalyzingErrors(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCourse && selectedClass && errorPatterns.length === 0) {
+      handleAnalyzeErrors();
+    }
+  }, [selectedCourse, selectedClass]);
 
   const toggleLayer = (layer: keyof typeof visibleLayers) => {
     setVisibleLayers({ ...visibleLayers, [layer]: !visibleLayers[layer] });
@@ -236,38 +209,27 @@ export default function Analytics() {
 
   const getStatusColor = (status: CompetencyStatus["status"]) => {
     switch (status) {
-      case "mastered":
-        return "text-secondary";
-      case "in-progress":
-        return "text-accent";
-      case "not-mastered":
-        return "text-muted-foreground";
+      case "mastered": return "text-secondary";
+      case "in-progress": return "text-accent";
+      case "not-mastered": return "text-muted-foreground";
     }
   };
 
   const getStatusBg = (status: CompetencyStatus["status"]) => {
     switch (status) {
-      case "mastered":
-        return "bg-secondary";
-      case "in-progress":
-        return "bg-accent";
-      case "not-mastered":
-        return "bg-muted-foreground/30";
+      case "mastered": return "bg-secondary";
+      case "in-progress": return "bg-accent";
+      case "not-mastered": return "bg-muted-foreground/30";
     }
   };
 
   const getLearningChannelIcon = (channel: string) => {
     switch (channel) {
-      case "Text":
-        return <BookOpen className="w-4 h-4" />;
-      case "Video":
-        return <Video className="w-4 h-4" />;
-      case "Audio":
-        return <Headphones className="w-4 h-4" />;
-      case "Images":
-        return <ImageIcon className="w-4 h-4" />;
-      default:
-        return null;
+      case "Text": return <BookOpen className="w-4 h-4" />;
+      case "Video": return <Video className="w-4 h-4" />;
+      case "Audio": return <Headphones className="w-4 h-4" />;
+      case "Images": return <ImageIcon className="w-4 h-4" />;
+      default: return null;
     }
   };
 
@@ -281,7 +243,6 @@ export default function Analytics() {
 
         {/* Selectors Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* Class Selection */}
           <div>
             <label className="block text-sm mb-2">Select Class</label>
             <select
@@ -294,14 +255,11 @@ export default function Analytics() {
             >
               <option value="">Select a Class</option>
               {classes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
 
-          {/* Course Selection */}
           <div>
             <label className="block text-sm mb-2">Select Course</label>
             <select
@@ -312,38 +270,26 @@ export default function Analytics() {
             >
               <option value="">Select a Course</option>
               {filteredCourses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
 
-          {/* View Mode Toggle */}
           <div>
             <label className="block text-sm mb-2">View Mode</label>
             <div className="flex bg-muted rounded-xl p-1">
               <button
-                onClick={() => {
-                  setViewMode("class");
-                  setSelectedStudentView("");
-                }}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  viewMode === "class"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                onClick={() => { setViewMode("class"); setSelectedStudentView(""); }}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all ${viewMode === "class" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <Users className="w-4 h-4" />
                 <span>Class View</span>
               </button>
               <button
                 onClick={() => setViewMode("student")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  viewMode === "student"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all ${viewMode === "student" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <User className="w-4 h-4" />
                 <span>Student View</span>
@@ -352,7 +298,6 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* Student Selector for Student View */}
         {viewMode === "student" && showAnalytics && (
           <div className="mb-6">
             <label className="block text-sm mb-2">Select Student</label>
@@ -363,230 +308,129 @@ export default function Analytics() {
             >
               <option value="">Select a Student</option>
               {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
+                <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
           </div>
         )}
 
-        {/* Empty State */}
         {!showAnalytics && (
           <div className="bg-card rounded-xl border border-border shadow-sm p-16 text-center">
             <div className="bg-muted rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-10 h-10 text-muted-foreground" />
             </div>
             <h3 className="text-xl mb-2">No Analytics Selected</h3>
-            <p className="text-muted-foreground">
-              Select a class and a course to view analytics.
-            </p>
+            <p className="text-muted-foreground">Select a class and a course to view analytics.</p>
           </div>
         )}
 
-        {/* CLASS VIEW */}
         {showAnalytics && viewMode === "class" && (
           <div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Radar Chart */}
               <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-sm p-6">
                 <h2 className="text-xl mb-6">Concept Mastery Analysis</h2>
-                
                 <ResponsiveContainer width="100%" height={400}>
                   <RadarChart data={conceptData}>
                     <PolarGrid stroke="#e5e7eb" />
-                    <PolarAngleAxis 
-                      dataKey="concept" 
-                      tick={{ fill: '#6b7280', fontSize: 12 }}
-                    />
+                    <PolarAngleAxis dataKey="concept" tick={{ fill: '#6b7280', fontSize: 12 }} />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#6b7280' }} />
-                    
-                    {visibleLayers.classAvg && (
-                      <Radar
-                        key="classAvg"
-                        name="Class Average"
-                        dataKey="classAvg"
-                        stroke="#6366F1"
-                        fill="#6366F1"
-                        fillOpacity={0.2}
-                        strokeWidth={2}
-                      />
-                    )}
-                    
-                    {visibleLayers.best && (
-                      <Radar
-                        key="best"
-                        name="Best Student"
-                        dataKey="best"
-                        stroke="#22C55E"
-                        fill="#22C55E"
-                        fillOpacity={0.15}
-                        strokeWidth={2}
-                      />
-                    )}
-                    
-                    {visibleLayers.worst && (
-                      <Radar
-                        key="worst"
-                        name="Worst Student"
-                        dataKey="worst"
-                        stroke="#ef4444"
-                        fill="#ef4444"
-                        fillOpacity={0.15}
-                        strokeWidth={2}
-                      />
-                    )}
-                    
+                    {visibleLayers.classAvg && <Radar key="classAvg" name="Class Average" dataKey="classAvg" stroke="#6366F1" fill="#6366F1" fillOpacity={0.2} strokeWidth={2} />}
+                    {visibleLayers.best && <Radar key="best" name="Best Student" dataKey="best" stroke="#22C55E" fill="#22C55E" fillOpacity={0.15} strokeWidth={2} />}
+                    {visibleLayers.worst && <Radar key="worst" name="Worst Student" dataKey="worst" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} strokeWidth={2} />}
                     <Legend />
                   </RadarChart>
                 </ResponsiveContainer>
 
-                {/* Interactive Legend with Toggle */}
                 <div className="mt-6 space-y-3">
                   <p className="text-sm text-muted-foreground mb-2">Toggle layers:</p>
                   <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => toggleLayer("classAvg")}
-                      className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                        visibleLayers.classAvg
-                          ? "border-primary bg-primary/5"
-                          : "border-border bg-muted/50 opacity-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-primary rounded-full"></div>
-                        <span className="text-sm">Class Avg</span>
-                      </div>
-                      {visibleLayers.classAvg ? (
-                        <Eye className="w-4 h-4 text-primary" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                      )}
+                    <button onClick={() => toggleLayer("classAvg")} className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${visibleLayers.classAvg ? "border-primary bg-primary/5" : "border-border bg-muted/50 opacity-50"}`}>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div><span className="text-sm">Class Avg</span></div>
+                      {visibleLayers.classAvg ? <Eye className="w-4 h-4 text-primary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
                     </button>
-
-                    <button
-                      onClick={() => toggleLayer("best")}
-                      className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                        visibleLayers.best
-                          ? "border-secondary bg-secondary/5"
-                          : "border-border bg-muted/50 opacity-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-secondary rounded-full"></div>
-                        <span className="text-sm">Best</span>
-                      </div>
-                      {visibleLayers.best ? (
-                        <Eye className="w-4 h-4 text-secondary" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                      )}
+                    <button onClick={() => toggleLayer("best")} className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${visibleLayers.best ? "border-secondary bg-secondary/5" : "border-border bg-muted/50 opacity-50"}`}>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 bg-secondary rounded-full"></div><span className="text-sm">Best</span></div>
+                      {visibleLayers.best ? <Eye className="w-4 h-4 text-secondary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
                     </button>
-
-                    <button
-                      onClick={() => toggleLayer("worst")}
-                      className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                        visibleLayers.worst
-                          ? "border-destructive bg-destructive/5"
-                          : "border-border bg-muted/50 opacity-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-destructive rounded-full"></div>
-                        <span className="text-sm">Worst</span>
-                      </div>
-                      {visibleLayers.worst ? (
-                        <Eye className="w-4 h-4 text-destructive" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                      )}
+                    <button onClick={() => toggleLayer("worst")} className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${visibleLayers.worst ? "border-destructive bg-destructive/5" : "border-border bg-muted/50 opacity-50"}`}>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 bg-destructive rounded-full"></div><span className="text-sm">Worst</span></div>
+                      {visibleLayers.worst ? <Eye className="w-4 h-4 text-destructive" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Student List */}
               <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                 <h2 className="text-xl mb-4">Class Students</h2>
                 <div className="space-y-2 max-h-[450px] overflow-y-auto">
                   {students.map((student) => (
-                    <div
-                      key={student.id}
-                      className="p-3 rounded-xl bg-muted border-2 border-transparent"
-                    >
+                    <div key={student.id} className="p-3 rounded-xl bg-muted border-2 border-transparent">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm">{student.name}</span>
-                        {student.trend === "up" ? (
-                          <TrendingUp className="w-4 h-4 text-secondary" />
-                        ) : student.trend === "down" ? (
-                          <TrendingDown className="w-4 h-4 text-destructive" />
-                        ) : null}
+                        {student.trend === "up" ? <TrendingUp className="w-4 h-4 text-secondary" /> : student.trend === "down" ? <TrendingDown className="w-4 h-4 text-destructive" /> : null}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
-                          Mastery: {student.mastery}%
-                        </span>
+                        <span className="text-xs text-muted-foreground">Mastery: {student.mastery}%</span>
                         <span className="text-xs">{student.score}%</span>
                       </div>
-                      <div className="mt-2 w-full bg-background rounded-full h-1.5">
-                        <div
-                          className="bg-primary h-1.5 rounded-full transition-all"
-                          style={{ width: `${student.mastery}%` }}
-                        />
-                      </div>
+                      <div className="mt-2 w-full bg-background rounded-full h-1.5"><div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${student.mastery}%` }} /></div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* AI Error Patterns */}
             <div className="mt-6 bg-card rounded-xl border border-border shadow-sm p-6">
-              <h2 className="text-xl mb-4">AI Detected Error Patterns</h2>
-              <div className="space-y-3">
-                {errorPatterns.map((error, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-xl border-l-4 flex items-start gap-4 ${
-                      error.severity === "high"
-                        ? "bg-red-50 border-red-500"
-                        : error.severity === "medium"
-                        ? "bg-amber-50 border-accent"
-                        : "bg-blue-50 border-blue-500"
-                    }`}
-                  >
-                    <AlertCircle
-                      className={`w-5 h-5 mt-0.5 shrink-0 ${
-                        error.severity === "high"
-                          ? "text-red-600"
-                          : error.severity === "medium"
-                          ? "text-accent"
-                          : "text-blue-600"
-                      }`}
-                    />
-                    <div className="flex-1">
-                      <p className="mb-1">{error.pattern}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {error.affected} students affected
-                      </p>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs ${
-                        error.severity === "high"
-                          ? "bg-red-100 text-red-700"
-                          : error.severity === "medium"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {error.severity}
-                    </span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-2 rounded-xl">
+                    <Sparkles className="w-5 h-5 text-primary" />
                   </div>
-                ))}
+                  <h2 className="text-xl">AI Detected Error Patterns</h2>
+                </div>
+                <button
+                  onClick={handleAnalyzeErrors}
+                  disabled={analyzingErrors}
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-primary/5 hover:bg-primary/10 text-primary rounded-xl transition-colors border border-primary/20"
+                >
+                  <RefreshCw className={`w-4 h-4 ${analyzingErrors ? 'animate-spin' : ''}`} />
+                  Re-analyze
+                </button>
               </div>
+
+              {analyzingErrors ? (
+                <div className="py-12 flex flex-col items-center justify-center">
+                  <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                  <p className="text-muted-foreground">Analyzing student response patterns for pedagogic insights...</p>
+                </div>
+              ) : errorPatterns.length > 0 ? (
+                <div className="space-y-3">
+                  {errorPatterns.map((error, index) => (
+                    <div
+                      key={index}
+                      className={`p-4 rounded-xl border-l-4 flex items-start gap-4 ${error.severity === "high" ? "bg-red-50 border-red-500" : error.severity === "medium" ? "bg-amber-50 border-accent" : "bg-blue-50 border-blue-500"
+                        }`}
+                    >
+                      <AlertCircle className={`w-5 h-5 mt-0.5 shrink-0 ${error.severity === "high" ? "text-red-600" : error.severity === "medium" ? "text-accent" : "text-blue-600"}`} />
+                      <div className="flex-1">
+                        <p className="mb-1 font-medium">{error.pattern}</p>
+                        <p className="text-sm text-muted-foreground">{error.affected} students affected</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${error.severity === "high" ? "bg-red-100 text-red-700" : error.severity === "medium" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                        {error.severity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-muted-foreground border border-dashed border-border rounded-xl">
+                  Select a class and course to perform AI analysis
+                </div>
+              )}
             </div>
           </div>
         )}
+
 
         {/* STUDENT VIEW */}
         {showAnalytics && viewMode === "student" && !selectedStudentView && (
@@ -646,16 +490,16 @@ export default function Analytics() {
                       {isLevel2Complete
                         ? currentStudent.level3.mastered
                         : isLevel1Complete
-                        ? currentStudent.level2.mastered
-                        : currentStudent.level1.mastered}
+                          ? currentStudent.level2.mastered
+                          : currentStudent.level1.mastered}
                       <span className="text-base text-muted-foreground">
                         {" "}
                         /{" "}
                         {isLevel2Complete
                           ? currentStudent.level3.total
                           : isLevel1Complete
-                          ? currentStudent.level2.total
-                          : currentStudent.level1.total}
+                            ? currentStudent.level2.total
+                            : currentStudent.level1.total}
                       </span>
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">competencies completed</p>
@@ -771,9 +615,8 @@ export default function Analytics() {
                             <div
                               className="bg-secondary h-2 rounded-full transition-all"
                               style={{
-                                width: `${
-                                  (currentStudent.level1.mastered / currentStudent.level1.total) * 100
-                                }%`,
+                                width: `${(currentStudent.level1.mastered / currentStudent.level1.total) * 100
+                                  }%`,
                               }}
                             />
                           </div>
@@ -829,9 +672,8 @@ export default function Analytics() {
                             <div
                               className={`${isLevel1Complete ? 'bg-accent' : 'bg-muted-foreground/30'} h-2 rounded-full transition-all`}
                               style={{
-                                width: `${
-                                  (currentStudent.level2.mastered / currentStudent.level2.total) * 100
-                                }%`,
+                                width: `${(currentStudent.level2.mastered / currentStudent.level2.total) * 100
+                                  }%`,
                               }}
                             />
                           </div>
@@ -891,9 +733,8 @@ export default function Analytics() {
                             <div
                               className={`${isLevel2Complete ? 'bg-destructive' : 'bg-muted-foreground/30'} h-2 rounded-full transition-all`}
                               style={{
-                                width: `${
-                                  (currentStudent.level3.mastered / currentStudent.level3.total) * 100
-                                }%`,
+                                width: `${(currentStudent.level3.mastered / currentStudent.level3.total) * 100
+                                  }%`,
                               }}
                             />
                           </div>
@@ -950,16 +791,16 @@ export default function Analytics() {
                 {/* Individual Radar Chart for Student */}
                 <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                   <h2 className="text-xl mb-6">{currentStudent.name}'s Competency Mastery</h2>
-                  
+
                   <ResponsiveContainer width="100%" height={400}>
                     <RadarChart data={conceptData}>
                       <PolarGrid stroke="#e5e7eb" />
-                      <PolarAngleAxis 
-                        dataKey="concept" 
+                      <PolarAngleAxis
+                        dataKey="concept"
                         tick={{ fill: '#6b7280', fontSize: 12 }}
                       />
                       <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#6b7280' }} />
-                      
+
                       <Radar
                         name={currentStudent.name}
                         dataKey="student"
@@ -968,7 +809,7 @@ export default function Analytics() {
                         fillOpacity={0.3}
                         strokeWidth={3}
                       />
-                      
+
                       <Radar
                         name="Class Average"
                         dataKey="classAvg"
@@ -977,7 +818,7 @@ export default function Analytics() {
                         fillOpacity={0.1}
                         strokeWidth={2}
                       />
-                      
+
                       <Legend />
                     </RadarChart>
                   </ResponsiveContainer>

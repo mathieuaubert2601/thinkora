@@ -1,6 +1,5 @@
 import StudentLayout from "../components/StudentLayout";
 import { useNavigate } from "react-router";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
 import { Clock, CheckCircle, AlertCircle, Trophy } from "lucide-react";
 
 export default function StudentDashboard() {
@@ -43,14 +42,7 @@ export default function StudentDashboard() {
     },
   ];
 
-  const masteryData = [
-    { concept: "Linear Equations", score: 85 },
-    { concept: "Quadratics", score: 72 },
-    { concept: "Polynomials", score: 88 },
-    { concept: "Graphing", score: 70 },
-    { concept: "Systems", score: 75 },
-    { concept: "Factoring", score: 92 },
-  ];
+
 
   const stats = [
     { label: "Assignments Due", value: "2", icon: Clock, color: "bg-accent" },
@@ -83,7 +75,7 @@ export default function StudentDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Homework List */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             <div>
               <h2 className="text-xl mb-4">My Homework</h2>
               <div className="space-y-3">
@@ -113,7 +105,7 @@ export default function StudentDashboard() {
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1 text-muted-foreground">
@@ -132,7 +124,7 @@ export default function StudentDashboard() {
                     </div>
 
                     {hw.status === "pending" && (
-                      <button 
+                      <button
                         onClick={() => navigate(`/student/homework/${hw.id}`)}
                         className="mt-3 w-full bg-primary text-primary-foreground py-2 rounded-xl hover:bg-primary/90 transition-colors">
                         Start Assignment
@@ -140,52 +132,6 @@ export default function StudentDashboard() {
                     )}
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Mastery Chart */}
-          <div className="bg-card rounded-xl border border-border shadow-sm p-6">
-            <h2 className="text-xl mb-4">My Mastery</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={masteryData}>
-                <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis 
-                  dataKey="concept" 
-                  tick={{ fill: '#6b7280', fontSize: 10 }}
-                />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#6b7280' }} />
-                <Radar
-                  name="My Progress"
-                  dataKey="score"
-                  stroke="#6366F1"
-                  fill="#6366F1"
-                  fillOpacity={0.5}
-                  strokeWidth={2}
-                />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
-
-            <div className="mt-6 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Overall Progress</span>
-                <span>79%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: '79%' }} />
-              </div>
-            </div>
-
-            <div className="mt-4 p-4 bg-amber-50 border-l-4 border-accent rounded-xl">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm mb-1">Focus Area</p>
-                  <p className="text-sm text-muted-foreground">
-                    You could improve in Quadratics and Graphing
-                  </p>
-                </div>
               </div>
             </div>
           </div>

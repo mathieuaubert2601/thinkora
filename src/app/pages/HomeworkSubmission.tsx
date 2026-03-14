@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import StudentLayout from "../components/StudentLayout";
-import { Upload, FileText, Image, FileType, AlertCircle, Send, Loader2, Sparkles, CheckCircle, XCircle, BookOpen, Clock, ArrowRight, Trophy } from "lucide-react";
+import { Upload, FileText, Image, FileType, AlertCircle, Send, Loader2, Sparkles, CheckCircle, XCircle, BookOpen, Clock, ArrowRight, Trophy, Heart } from "lucide-react";
 import { gradeHomework, generatePersonalizedTasks } from "../../lib/gemini";
 
 type GradingResult = {
@@ -237,7 +237,7 @@ export default function HomeworkSubmission() {
             {/* Submission Form */}
             <div className="space-y-6">
               {/* Assignment Details */}
-              <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+              <div className="bg-card rounded-2xl border border-border premium-shadow p-6">
                 <h2 className="text-xl mb-4 font-bold">Assignment Details</h2>
                 <p className="text-muted-foreground mb-4">{homework.description}</p>
                 <div className="bg-muted p-4 rounded-xl">
@@ -264,7 +264,9 @@ export default function HomeworkSubmission() {
               </div>
 
               {/* Submission Method */}
-              <div className="bg-card rounded-3xl border border-border shadow-sm p-8">
+              {/* Submission Method */}
+              <div className="glass-card rounded-3xl p-8 premium-shadow relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20"></div>
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl font-bold">Your Submission</h2>
                   <div className="flex bg-muted p-1 rounded-xl">

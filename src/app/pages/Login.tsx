@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { GraduationCap, Mail, Lock, Sparkles, Shield, User, TrendingUp, Users } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import thinkoraLogo from "figma:asset/79e589be87bee90c30cc390d1043c26dfe1b30b4.png";
+import thinkoraLogo from "@/assets/79e589be87bee90c30cc390d1043c26dfe1b30b4.png";
 
 export default function Login() {
   const navigate = useNavigate();

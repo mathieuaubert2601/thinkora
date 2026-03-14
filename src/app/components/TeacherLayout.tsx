@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { LayoutDashboard, BookOpen, FileText, BarChart3, GraduationCap, LogOut, Target } from "lucide-react";
-import thinkoraLogo from "figma:asset/79e589be87bee90c30cc390d1043c26dfe1b30b4.png";
+import thinkoraLogo from "@/assets/79e589be87bee90c30cc390d1043c26dfe1b30b4.png";
 
 interface TeacherLayoutProps {
   children: ReactNode;

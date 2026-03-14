@@ -1,6 +1,6 @@
 import { useState } from "react";
 import TeacherLayout from "../components/TeacherLayout";
-import { Upload, Calendar, Users, User, BookOpen } from "lucide-react";
+import { Upload, Calendar, Users, User, BookOpen, Sparkles } from "lucide-react";
 
 type AssignmentType = "class" | "student";
 
@@ -9,6 +9,7 @@ export default function HomeworkAssignment() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedChapter, setSelectedChapter] = useState("");
+  const [aiInstructions, setAiInstructions] = useState("");
 
   const classes = [
     { id: 1, name: "Mathematics 101 - Section A" },
@@ -250,6 +251,24 @@ export default function HomeworkAssignment() {
               placeholder="100"
               className="w-full px-4 py-3 rounded-xl border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
+          </div>
+
+          {/* AI Grading Instructions */}
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center gap-2 mb-3 text-primary">
+              <Sparkles className="w-5 h-5" />
+              <label className="font-medium text-foreground">AI Grading Assistance (Optional)</label>
+            </div>
+            <textarea
+              rows={4}
+              value={aiInstructions}
+              onChange={(e) => setAiInstructions(e.target.value)}
+              placeholder="Provide specific guidelines, key points to look for, or common mistakes to penalize to help the AI grade this assignment more accurately..."
+              className="w-full px-4 py-3 rounded-xl border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              These instructions will be used as context for the AI when evaluating student submissions.
+            </p>
           </div>
 
           {/* Additional Options */}

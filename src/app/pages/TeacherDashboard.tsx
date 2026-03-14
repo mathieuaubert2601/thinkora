@@ -74,7 +74,7 @@ export default function TeacherDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="bg-primary/10 p-3 rounded-xl">
@@ -95,15 +95,6 @@ export default function TeacherDashboard() {
             <div className="text-sm text-muted-foreground">Total Students</div>
           </div>
 
-          <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-accent/10 p-3 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-accent" />
-              </div>
-            </div>
-            <div className="text-2xl mb-1">75%</div>
-            <div className="text-sm text-muted-foreground">Avg. Progress</div>
-          </div>
 
           <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -138,18 +129,6 @@ export default function TeacherDashboard() {
                             {cls.students} students enrolled
                           </p>
                         </div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-muted-foreground">Average Progress</span>
-                        <span className="text-sm">{cls.avgProgress}%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div
-                          className={`${cls.color} h-2 rounded-full transition-all`}
-                          style={{ width: `${cls.avgProgress}%` }}
-                        />
                       </div>
                     </div>
                   </div>

@@ -1,44 +1,48 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import StudentLayout from "../components/StudentLayout";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
-import { Target, Heart, Lightbulb, Trophy, Sparkles, ArrowLeft, CheckCircle } from "lucide-react";
+import { Target, Heart, Lightbulb, Trophy, Sparkles, ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { generateTaskContent } from "../../lib/gemini";
+
+type TaskData = {
+  concept: string;
+  hobby: string;
+  title: string;
+  explanation: string;
+  practiceTask: string;
+  correctAnswer: string;
+  hint: string;
+};
 
 export default function TailoredTask() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const conceptParam = searchParams.get("concept") || "Linear Equations";
+  const hobbyParam = searchParams.get("hobby") || "Music";
+
+  const [loading, setLoading] = useState(true);
+  const [taskData, setTaskData] = useState<TaskData | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [answer, setAnswer] = useState("");
   const [isCorrect, setIsCorrect] = useState(false);
   const [showMastery, setShowMastery] = useState(false);
 
-  const taskData = {
-    concept: "Quadratic Equations",
-    hobby: "Video Games",
-    title: "Understanding Functions through Game Mechanics",
-    explanation: `In your favorite shooting games, when you throw a grenade, it follows a curved path called a parabola. This path can be described using a quadratic equation!
-
-The height (h) of the grenade at any time (t) can be calculated using:
-h(t) = -5t² + 20t + 2
-
-Where:
-• -5t² represents gravity pulling the grenade down
-• 20t represents the initial upward velocity
-• 2 represents the initial height
-
-Just like how game developers use these equations to create realistic physics, you can use them to predict where objects will land!`,
-    
-    practiceTask: `A player throws a grenade with an initial velocity of 15 m/s from a height of 1.5 meters. The equation is:
-
-h(t) = -5t² + 15t + 1.5
-
-Question: At what time will the grenade reach its maximum height?
-
-Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c`,
-    
-    correctAnswer: "1.5",
-    hint: "Remember: In a quadratic equation y = at² + bt + c, the vertex (maximum point) occurs at t = -b/(2a). Here, a = -5 and b = 15.",
-  };
+  useEffect(() => {
+    async function loadContent() {
+      setLoading(true);
+      try {
+        const content = await generateTaskContent(conceptParam, hobbyParam);
+        setTaskData(content);
+      } catch (e) {
+        console.error("Failed to generate task content", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadContent();
+  }, [conceptParam, hobbyParam]);
 
   const masteryBefore = [
     { concept: "Quadratics", score: 72 },
@@ -55,25 +59,39 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
   ];
 
   const handleSubmit = () => {
-    if (answer === taskData.correctAnswer) {
+    if (answer.toLowerCase().trim() === taskData?.correctAnswer.toLowerCase().trim()) {
       setIsCorrect(true);
       setTimeout(() => {
         setShowMastery(true);
       }, 1000);
     } else {
-      alert("Not quite right. Try again or check the hint!");
+      alert(`Not quite right. Try again or check the hint!`);
     }
   };
+
+  if (loading) {
+    return (
+      <StudentLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+          <h2 className="text-xl font-medium">Generating Tailored Content...</h2>
+          <p className="text-muted-foreground">AI is connecting ${conceptParam} to your interest in ${hobbyParam}</p>
+        </div>
+      </StudentLayout>
+    );
+  }
+
+  if (!taskData) return null;
 
   return (
     <StudentLayout>
       <div className="p-8 max-w-5xl mx-auto">
         <button
-          onClick={() => navigate("/student/learning")}
+          onClick={() => navigate("/student/dashboard")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Learning
+          Back to Dashboard
         </button>
 
         <div className="space-y-6">
@@ -92,7 +110,7 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
                 </div>
               </div>
               <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
-                <div className="text-2xl">{taskData.concept}</div>
+                <div className="text-lg font-medium">{taskData.concept}</div>
               </div>
             </div>
           </div>
@@ -120,7 +138,7 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
               </div>
               <h2 className="text-xl">Practice Task</h2>
             </div>
-            
+
             <div className="bg-muted p-4 rounded-xl mb-6 font-mono text-sm whitespace-pre-line">
               {taskData.practiceTask}
             </div>
@@ -159,8 +177,8 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
                     <div className="flex items-start gap-3">
                       <Lightbulb className="w-5 h-5 text-accent shrink-0 mt-0.5" />
                       <div>
-                        <p className="mb-1">Hint</p>
-                        <p className="text-sm text-muted-foreground">{taskData.hint}</p>
+                        <p className="mb-1 font-medium text-amber-900">Hint</p>
+                        <p className="text-sm text-amber-800">{taskData.hint}</p>
                       </div>
                     </div>
                   </div>
@@ -181,7 +199,7 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
                 </div>
                 <div className="flex items-center gap-3">
                   <Trophy className="w-6 h-6 text-accent" />
-                  <span className="text-lg">+10 Mastery Points in Quadratic Equations</span>
+                  <span className="text-lg font-medium text-green-900">+10 Mastery Points in {taskData.concept}</span>
                 </div>
               </div>
             )}
@@ -203,8 +221,8 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
                   <ResponsiveContainer width="100%" height={250}>
                     <RadarChart data={masteryBefore}>
                       <PolarGrid stroke="#e5e7eb" />
-                      <PolarAngleAxis 
-                        dataKey="concept" 
+                      <PolarAngleAxis
+                        dataKey="concept"
                         tick={{ fill: '#6b7280', fontSize: 12 }}
                       />
                       <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#6b7280' }} />
@@ -224,8 +242,8 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
                   <ResponsiveContainer width="100%" height={250}>
                     <RadarChart data={masteryAfter}>
                       <PolarGrid stroke="#e5e7eb" />
-                      <PolarAngleAxis 
-                        dataKey="concept" 
+                      <PolarAngleAxis
+                        dataKey="concept"
                         tick={{ fill: '#6b7280', fontSize: 12 }}
                       />
                       <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#6b7280' }} />
@@ -243,10 +261,10 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
 
               <div className="mt-6 text-center">
                 <button
-                  onClick={() => navigate("/student/learning")}
+                  onClick={() => navigate("/student/dashboard")}
                   className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors shadow-md"
                 >
-                  Continue Learning
+                  Return to Dashboard
                 </button>
               </div>
             </div>
@@ -256,3 +274,4 @@ Hint: The maximum height occurs at t = -b/(2a) in the equation y = at² + bt + c
     </StudentLayout>
   );
 }
+

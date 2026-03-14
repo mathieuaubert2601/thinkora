@@ -22,15 +22,15 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
+      <aside className="w-64 sidebar-gradient text-white flex flex-col shadow-2xl z-20">
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="bg-white p-2 rounded-xl shadow-sm">
+            <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/20">
               <img src={thinkoraLogo} alt="Thinkora" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-xl">Thinkora</h1>
-              <p className="text-xs text-muted-foreground">Student Portal</p>
+              <h1 className="text-xl font-bold tracking-tight">Thinkora</h1>
+              <p className="text-[10px] uppercase tracking-wider opacity-60">Student Portal</p>
             </div>
           </div>
         </div>
@@ -40,9 +40,9 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive(item.path)
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "text-foreground hover:bg-muted"
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive(item.path)
+                  ? "bg-white/20 text-white shadow-lg ring-1 ring-white/30 backdrop-blur-sm"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
             >
               <item.icon className="w-5 h-5" />
@@ -51,10 +51,10 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={() => navigate("/")}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-red-300 hover:bg-red-500/10 transition-all"
           >
             <LogOut className="w-5 h-5" />
             <span>Logout</span>

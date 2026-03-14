@@ -2,15 +2,15 @@
 
 :root {
   --font-size: 16px;
-  --background: #F9FAFB;
-  --foreground: #1f2937;
+  --background: #F0F7FF;
+  --foreground: #1e293b;
   --card: #ffffff;
-  --card-foreground: #1f2937;
+  --card-foreground: #1e293b;
   --popover: #ffffff;
-  --popover-foreground: #1f2937;
-  --primary: #6366F1;
+  --popover-foreground: #1e293b;
+  --primary: #2563EB;
   --primary-foreground: #ffffff;
-  --secondary: #22C55E;
+  --secondary: #10B981;
   --secondary-foreground: #ffffff;
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
@@ -18,28 +18,30 @@
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
   --input: transparent;
   --input-background: #ffffff;
-  --switch-background: #d1d5db;
+  --switch-background: #cbd5e1;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #6366F1;
-  --chart-1: #6366F1;
-  --chart-2: #22C55E;
+  --ring: #2563EB;
+  --chart-1: #2563EB;
+  --chart-2: #10B981;
   --chart-3: #F59E0B;
   --chart-4: #8b5cf6;
   --chart-5: #ec4899;
   --chart-6: #14b8a6;
   --radius: 0.75rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #1f2937;
-  --sidebar-primary: #6366F1;
+  --sidebar-foreground: #1e293b;
+  --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f4f6;
-  --sidebar-accent-foreground: #1f2937;
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: #6366F1;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #1e293b;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #2563EB;
+  --sidebar-deep: #1e3a8a;
+  --sidebar-deep-foreground: #ffffff;
 }
 
 .dark {
@@ -182,3 +184,22 @@
     line-height: 1.5;
   }
 }
+
+/* Premium Design Utilities */
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.premium-shadow {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.01);
+}
+
+.sidebar-gradient {
+  background: linear-gradient(180deg, var(--sidebar-deep) 0%, #1e40af 100%);
+}

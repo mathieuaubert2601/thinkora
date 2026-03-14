@@ -7,7 +7,6 @@ import thinkoraLogo from "@/assets/79e589be87bee90c30cc390d1043c26dfe1b30b4.png"
 export default function Login() {
   const navigate = useNavigate();
   const [role, setRole] = useState<"teacher" | "student">("student");
-  const [isSignup, setIsSignup] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,9 +104,9 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <h2 className="text-3xl mb-2">{isSignup ? "Create Account" : "Welcome Back"}</h2>
+            <h2 className="text-3xl mb-2">Welcome Back</h2>
             <p className="text-muted-foreground">
-              {isSignup ? "Start your learning journey" : "Sign in to continue"}
+              Sign in to continue
             </p>
           </div>
 
@@ -168,36 +167,26 @@ export default function Login() {
               </div>
             </div>
 
-            {!isSignup && (
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded" />
-                  <span className="text-muted-foreground">Remember me</span>
-                </label>
-                <button type="button" className="text-primary hover:underline">
-                  Forgot password?
-                </button>
-              </div>
-            )}
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="rounded" />
+                <span className="text-muted-foreground">Remember me</span>
+              </label>
+              <button type="button" className="text-primary hover:underline">
+                Forgot password?
+              </button>
+            </div>
 
             <button
               type="submit"
               className="w-full bg-primary text-primary-foreground py-3 rounded-xl hover:bg-primary/90 transition-colors shadow-md"
             >
-              {isSignup ? "Sign Up" : "Sign In"}
+              Sign In
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">
-              {isSignup ? "Already have an account?" : "Don't have an account?"}
-            </span>{" "}
-            <button
-              onClick={() => setIsSignup(!isSignup)}
-              className="text-primary hover:underline"
-            >
-              {isSignup ? "Sign In" : "Sign Up"}
-            </button>
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Contact your administrator if you need an account.
           </div>
         </div>
       </div>

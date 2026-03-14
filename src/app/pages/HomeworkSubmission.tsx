@@ -67,9 +67,9 @@ export default function HomeworkSubmission() {
         setRemediationTasks(tasks);
         setIsGeneratingTasks(false);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Grading failed", e);
-      alert("Something went wrong with the AI grading. Please try again.");
+      alert(`Something went wrong with the AI grading (MistralAI): ${e.message || "Unknown error"}. Please try again.`);
     } finally {
       setIsSubmitting(false);
       setIsGeneratingTasks(false);
@@ -115,7 +115,7 @@ export default function HomeworkSubmission() {
                     <h2 className="text-3xl font-bold">
                       {gradingResult.score === 100 ? "Perfect Score!" : "Homework Graded"}
                     </h2>
-                    <p className="opacity-80">Pedagogical Insights by Gemini AI</p>
+                    <p className="opacity-80">Pedagogical Insights by MistralAI</p>
                   </div>
                 </div>
                 <div className="bg-white/20 px-8 py-3 rounded-2xl backdrop-blur-md border border-white/30 text-center">
@@ -258,7 +258,7 @@ export default function HomeworkSubmission() {
                 <div>
                   <p className="font-bold text-amber-900">Important Note</p>
                   <p className="text-sm text-amber-800/80">
-                    Gemini AI will analyze your work. Focus on showing your logic even if your final answer is wrong.
+                    MistralAI will analyze your work. Focus on showing your logic even if your final answer is wrong.
                   </p>
                 </div>
               </div>
@@ -339,7 +339,7 @@ export default function HomeworkSubmission() {
                   AI Grading Criteria
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Your submission will be evaluated based on the following criteria using the new Gemini 3.0 Model:
+                  Your submission will be evaluated based on the following criteria using the new MistralAI Model:
                 </p>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 text-sm">
                   <li className="flex items-start gap-2">
@@ -377,7 +377,7 @@ export default function HomeworkSubmission() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-6 h-6 animate-spin" />
-                      Gemini is grading...
+                      MistralAI is grading...
                     </>
                   ) : (
                     <>

@@ -1,8 +1,30 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const API_KEY = "AIzaSyBWfcGmAecIdp6wBYP2by1qvlFTIf0im6A";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+function parseJSON(text: string) {
+  try {
+    // Try primary parse
+    return JSON.parse(text);
+  } catch (e) {
+    // Attempt to extract JSON from model response
+    const jsonStart = Math.max(text.indexOf("{"), text.indexOf("["));
+    const jsonEnd = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
+    
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      const extracted = text.substring(jsonStart, jsonEnd + 1);
+      try {
+        return JSON.parse(extracted);
+      } catch (e2) {
+        console.error("Failed to parse extracted JSON:", extracted);
+        throw e2;
+      }
+    }
+    console.error("No JSON structure found in response:", text);
+    throw e;
+  }
+}
 
 export async function generatePersonalizedTasks(interests: string[], concepts: string[]) {
   const prompt = `
@@ -27,13 +49,7 @@ export async function generatePersonalizedTasks(interests: string[], concepts: s
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Failed to parse AI response:", text);
-    // Fallback or better cleaning logic could go here
-    return [];
-  }
+  return parseJSON(text);
 }
 
 export async function generateTaskContent(concept: string, hobby: string) {
@@ -57,12 +73,7 @@ export async function generateTaskContent(concept: string, hobby: string) {
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Failed to parse AI response:", text);
-    throw new Error("AI Content Generation Failed");
-  }
+  return parseJSON(text);
 }
 
 export async function analyzeErrorPatterns(studentAttempts: any[]) {
@@ -84,9 +95,8 @@ export async function analyzeErrorPatterns(studentAttempts: any[]) {
   const result = await model.generateContent(prompt);
   const text = result.response.text();
   try {
-    return JSON.parse(text);
+    return parseJSON(text);
   } catch (e) {
-    console.error("Failed to parse AI response:", text);
     return [];
   }
 }
@@ -108,12 +118,7 @@ export async function extractCourseCompetencies(courseTitle: string, syllabusTex
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Failed to parse AI response:", text);
-    throw new Error("Competency Extraction Failed");
-  }
+  return parseJSON(text);
 }
 export async function gradeHomework(homeworkTitle: string, description: string, submission: string) {
   const prompt = `
@@ -136,10 +141,5 @@ export async function gradeHomework(homeworkTitle: string, description: string, 
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Failed to parse AI response:", text);
-    throw new Error("Homework Grading Failed");
-  }
+  return parseJSON(text);
 }

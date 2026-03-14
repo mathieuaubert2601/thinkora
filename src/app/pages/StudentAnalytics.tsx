@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import StudentLayout from "../components/StudentLayout";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
-import { BookOpen, CheckCircle, Clock, Circle, Lock, Award, Target, Video, Headphones, FileText, Image as ImageIcon, Send, Sparkles, Loader2 } from "lucide-react";
+import { BookOpen, CheckCircle, Clock, Circle, Lock, Award, Target, Video, Headphones, FileText, Image as ImageIcon, Send, Sparkles, Loader2, Gamepad2 } from "lucide-react";
 import { generatePersonalizedTasks } from "../../lib/gemini";
 
 type CompetencyStatus = {
@@ -37,6 +37,7 @@ export default function StudentAnalytics() {
   const [selectedChapter, setSelectedChapter] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tasks, setTasks] = useState<PersonalizedTask[]>([]);
+  const [youngStudentsMode, setYoungStudentsMode] = useState(false);
 
   const courses: Course[] = [
     {
@@ -69,6 +70,10 @@ export default function StudentAnalytics() {
   };
 
   useEffect(() => {
+    if (selectedCourse) {
+      const mode = localStorage.getItem(`youngMode_${selectedCourse}`) === "true";
+      setYoungStudentsMode(mode);
+    }
     if (selectedChapter && selectedCourse) {
       loadAIData();
     }
@@ -167,6 +172,169 @@ export default function StudentAnalytics() {
 
   const showAnalytics = selectedCourse && selectedChapter;
 
+  const totalMastered = studentProgress.level1.mastered + studentProgress.level2.mastered + studentProgress.level3.mastered;
+  const totalPossible = studentProgress.level1.total + studentProgress.level2.total + studentProgress.level3.total;
+
+  // Linear progression logic
+  let currentLevelIndex = 0; // 0 for Level 1, 1 for Level 2, 2 for Finish
+  let currentLevelMastered = studentProgress.level1.mastered;
+  let currentLevelTotal = studentProgress.level1.total;
+
+  if (studentProgress.level1.mastered === studentProgress.level1.total) {
+    currentLevelIndex = 1;
+    currentLevelMastered = studentProgress.level2.mastered;
+    currentLevelTotal = studentProgress.level2.total;
+    
+    if (studentProgress.level2.mastered === studentProgress.level2.total) {
+      currentLevelIndex = 2;
+      currentLevelMastered = studentProgress.level3.mastered;
+      currentLevelTotal = studentProgress.level3.total;
+    }
+  }
+
+  // Calculate position: Level 1 is at 40%, Level 2 at 70%, Finish at 90%
+  const levelPositions = [40, 70, 90];
+  const startPosition = 0;
+  
+  let visualProgressPercent = 0;
+  if (currentLevelIndex === 0) {
+    // Between Start (0) and L1 (10)
+    visualProgressPercent = (currentLevelMastered / currentLevelTotal) * levelPositions[0];
+  } else if (currentLevelIndex === 1) {
+    // Between L1 (10) and L2 (50)
+    visualProgressPercent = levelPositions[0] + (currentLevelMastered / currentLevelTotal) * (levelPositions[1] - levelPositions[0]);
+  } else if (currentLevelIndex === 2) {
+    // Between L2 (50) and Finish (90)
+    visualProgressPercent = levelPositions[1] + (currentLevelMastered / currentLevelTotal) * (levelPositions[2] - levelPositions[1]);
+  }
+
+  const MarioPathVisualization = () => {
+
+    return (
+      <div className="relative py-16 px-4 bg-gradient-to-b from-sky-300 via-sky-100 to-emerald-50 rounded-3xl border-8 border-sky-400/30 overflow-hidden shadow-inner">
+        {/* Background Decorative elements */}
+        <div className="absolute top-10 left-[10%] opacity-40"><div className="w-16 h-8 bg-white rounded-full blur-md"></div></div>
+        <div className="absolute top-24 left-[30%] opacity-30"><div className="w-20 h-10 bg-white rounded-full blur-md"></div></div>
+        <div className="absolute top-12 right-[15%] opacity-40"><div className="w-24 h-12 bg-white rounded-full blur-md"></div></div>
+        
+        {/* Distant Hills */}
+        <div className="absolute bottom-16 left-0 right-0 h-32 flex items-end">
+          <div className="w-1/3 h-20 bg-emerald-600/20 rounded-t-full blur-xl translate-x-10"></div>
+          <div className="w-1/2 h-24 bg-emerald-500/20 rounded-t-full blur-xl -translate-x-5"></div>
+          <div className="w-1/3 h-16 bg-emerald-400/20 rounded-t-full blur-xl"></div>
+        </div>
+        
+        <div className="relative max-w-3xl mx-auto">
+          {/* Ongoing Path Background (Gray/Unfinished) */}
+          <div className="absolute top-1/2 left-0 right-[-10%] h-12 bg-gray-300 -translate-y-1/2 rounded-l-full shadow-inner border-b-4 border-gray-400/50"></div>
+          
+          {/* Finished Part of the Path (Green) */}
+          <div 
+            className="absolute top-1/2 left-0 h-12 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-400 -translate-y-1/2 rounded-l-full shadow-lg border-b-4 border-emerald-800/50 transition-all duration-1000 z-10"
+            style={{ width: `${visualProgressPercent}%` }}
+          ></div>
+          
+          {/* Milestone Bases */}
+          <div className="relative h-24 z-20">
+            {/* Level 1 */}
+            <div 
+              className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000"
+              style={{ left: `${levelPositions[0]}%` }}
+            >
+              <div className="relative">
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl transform rotate-3 transition-transform hover:scale-110 border-b-8 ${studentProgress.level1.mastered === studentProgress.level1.total ? "bg-amber-400 border-amber-600 text-white" : "bg-white border-gray-200 text-gray-300"}`}>
+                  <Award className="w-10 h-10 drop-shadow-md" />
+                </div>
+                {studentProgress.level1.mastered === studentProgress.level1.total && (
+                  <div className="absolute -top-3 -right-3 bg-secondary p-1.5 rounded-full border-2 border-white animate-bounce">
+                    <CheckCircle className="w-5 h-5 text-white" />
+                  </div>
+                )}
+              </div>
+              <span className="mt-4 font-black text-xs tracking-widest text-emerald-800 uppercase">Level 1</span>
+            </div>
+            
+            {/* Level 2 */}
+            <div 
+              className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000"
+              style={{ left: `${levelPositions[1]}%` }}
+            >
+              <div className="relative">
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl transform -rotate-3 transition-transform hover:scale-110 border-b-8 ${isLevel1Complete ? "bg-blue-400 border-blue-600 text-white" : "bg-white border-gray-200 text-gray-300"}`}>
+                  {isLevel1Complete ? <Award className="w-10 h-10 drop-shadow-md" /> : <Lock className="w-10 h-10" />}
+                </div>
+                {isLevel1Complete && studentProgress.level2.mastered === studentProgress.level2.total && (
+                  <div className="absolute -top-3 -right-3 bg-secondary p-1.5 rounded-full border-2 border-white animate-bounce">
+                    <CheckCircle className="w-5 h-5 text-white" />
+                  </div>
+                )}
+              </div>
+              <span className="mt-4 font-black text-xs tracking-widest text-emerald-800 uppercase">Level 2</span>
+            </div>
+            
+            {/* Grand Finale */}
+            <div 
+              className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000"
+              style={{ left: `${levelPositions[2]}%` }}
+            >
+              <div className="relative">
+                <div className={`w-24 h-24 rounded-full flex items-center justify-center shadow-2xl transform hover:rotate-12 transition-transform hover:scale-110 border-b-8 ${isLevel2Complete ? "bg-purple-500 border-purple-700 text-white" : "bg-white border-gray-200 text-gray-300 shadow-none opacity-50"}`}>
+                  <Sparkles className="w-12 h-12 drop-shadow-md" />
+                </div>
+                <div className={`absolute -top-12 left-1/2 -ml-3 text-4xl transform transition-opacity duration-1000 ${isLevel2Complete ? "opacity-100 animate-pulse" : "opacity-0"}`}>🚩</div>
+              </div>
+              <span className="mt-4 font-black text-xs tracking-widest text-emerald-800 uppercase">Grand Finale</span>
+            </div>
+          </div>
+
+          {/* Golden Stars (Coins) along the path */}
+          <div className={`absolute top-1/2 left-[20%] -translate-y-8 animate-pulse text-xl transition-opacity ${visualProgressPercent > 20 ? "text-yellow-500" : "text-gray-300 opacity-50"}`}>⭐</div>
+          <div className={`absolute top-1/2 left-[55%] -translate-y-14 animate-pulse delay-75 text-xl transition-opacity ${visualProgressPercent > 55 ? "text-yellow-500" : "text-gray-300 opacity-50"}`}>⭐</div>
+          <div className={`absolute top-1/2 left-[80%] -translate-y-8 animate-pulse delay-150 text-xl transition-opacity ${visualProgressPercent > 80 ? "text-yellow-500" : "text-gray-300 opacity-50"}`}>⭐</div>
+
+          {/* Player Character */}
+          <div 
+            className="absolute top-1/2 -mt-20 transition-all duration-1000 cubic-bezier(0.34, 1.56, 0.64, 1) z-30"
+            style={{ 
+              left: `calc(${visualProgressPercent}% - 48px)`,
+            }}
+          >
+            <div className="relative group cursor-pointer">
+              <div className="bg-primary p-4 rounded-full border-4 border-white text-white shadow-2xl animate-bounce">
+                <Gamepad2 className="w-12 h-12 drop-shadow-lg" />
+              </div>
+              <div className="absolute -top-2 -right-2 bg-yellow-400 w-6 h-6 rounded-full border-2 border-white shadow-md animate-spin-slow"></div>
+              
+              {/* Tooltip-like popup */}
+              <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-lg border-2 border-primary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <span className="text-sm font-bold text-primary">On my way! 🚀</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quest Info */}
+        <div className="mt-16 flex flex-wrap justify-center gap-6">
+          <div className="flex items-center gap-3 px-6 py-3 bg-white/90 rounded-2xl border-b-4 border-secondary shadow-md transform -rotate-1">
+            <div className="bg-secondary/10 p-2 rounded-lg"><Award className="w-5 h-5 text-secondary" /></div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-secondary tracking-tighter">Current Step Mastery</p>
+              <p className="text-xl font-black text-emerald-900 leading-none">{currentLevelMastered} / {currentLevelTotal}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 px-6 py-3 bg-white/90 rounded-2xl border-b-4 border-sky-200 shadow-md transform rotate-1">
+             <div className="bg-sky-100 p-2 rounded-lg"><Target className="w-5 h-5 text-sky-500" /></div>
+             <div>
+              <p className="text-[10px] font-black uppercase text-sky-600 tracking-tighter">Current Quest</p>
+              <p className="text-base font-black text-emerald-900 leading-tight">{selectedChapterObj?.name}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <StudentLayout>
       <div className="p-8">
@@ -237,9 +405,9 @@ export default function StudentAnalytics() {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               ) : (
                 <div className="bg-card rounded-xl px-4 py-2 border border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Overall Mastery</p>
-                  <p className="text-2xl text-primary">
-                    {Math.round(((studentProgress.level1.mastered + studentProgress.level2.mastered + studentProgress.level3.mastered) / (studentProgress.level1.total + studentProgress.level2.total + studentProgress.level3.total)) * 100)}%
+                  <p className="text-xs text-muted-foreground mb-1">Current Mastery</p>
+                  <p className="text-2xl text-secondary">
+                    {currentLevelMastered} / {currentLevelTotal}
                   </p>
                 </div>
               )}
@@ -395,20 +563,35 @@ export default function StudentAnalytics() {
               </div>
             </div>
 
-            {/* Radar Chart */}
+            {/* Mastery Visualization */}
             <div className="bg-card rounded-xl border border-border shadow-sm p-6">
-              <h2 className="text-xl mb-6">My Concept Mastery - {selectedChapterObj?.name}</h2>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={conceptData}>
-                  <PolarGrid stroke="#e5e7eb" />
-                  <PolarAngleAxis dataKey="concept" tick={{ fill: "#6b7280", fontSize: 12 }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "#6b7280" }} />
-                  <Radar name="My Performance" dataKey="student" stroke="#6366F1" fill="#6366F1" fillOpacity={0.3} strokeWidth={3} />
-                  <Radar name="Class Average" dataKey="classAvg" stroke="#22C55E" fill="#22C55E" fillOpacity={0.1} strokeWidth={2} />
-                  <Legend />
-                </RadarChart>
-              </ResponsiveContainer>
-              <div className="mt-6 text-center text-sm text-muted-foreground">Compare your performance with the class average for this chapter</div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl">My Concept Mastery - {selectedChapterObj?.name}</h2>
+                {youngStudentsMode && (
+                  <span className="flex items-center gap-1 text-xs font-bold text-secondary px-2 py-1 bg-secondary/10 rounded-lg">
+                    <Gamepad2 className="w-3 h-3" />
+                    YOUNG MODE
+                  </span>
+                )}
+              </div>
+              
+              {youngStudentsMode ? (
+                <MarioPathVisualization />
+              ) : (
+                <>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <RadarChart data={conceptData}>
+                      <PolarGrid stroke="#e5e7eb" />
+                      <PolarAngleAxis dataKey="concept" tick={{ fill: "#6b7280", fontSize: 12 }} />
+                      <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "#6b7280" }} />
+                      <Radar name="My Performance" dataKey="student" stroke="#6366F1" fill="#6366F1" fillOpacity={0.3} strokeWidth={3} />
+                      <Radar name="Class Average" dataKey="classAvg" stroke="#22C55E" fill="#22C55E" fillOpacity={0.1} strokeWidth={2} />
+                      <Legend />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-6 text-center text-sm text-muted-foreground">Compare your performance with the class average for this chapter</div>
+                </>
+              )}
             </div>
 
             {/* Summary Cards */}

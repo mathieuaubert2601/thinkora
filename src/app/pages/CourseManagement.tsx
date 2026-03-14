@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import TeacherLayout from "../components/TeacherLayout";
-import { ChevronDown, ChevronRight, Plus, BookOpen, Power } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, BookOpen, Power, Gamepad2 } from "lucide-react";
 
 type Course = {
   id: number;
@@ -9,6 +9,7 @@ type Course = {
   active: boolean;
   chapters: number;
   students: number;
+  youngMode?: boolean;
 };
 
 type ClassData = {
@@ -65,6 +66,22 @@ export default function CourseManagement() {
             }
           : cls
       )
+    );
+  };
+
+  const toggleYoungMode = (courseId: number) => {
+    const key = `youngMode_${courseId}`;
+    const current = localStorage.getItem(key) === "true";
+    localStorage.setItem(key, String(!current));
+    // Force re-render by updating state if necessary, but here we just update local storage
+    // or we could add it to the course object if we want it reactive in this view too.
+    setClasses((prev) =>
+      prev.map((cls) => ({
+        ...cls,
+        courses: cls.courses.map((c) => 
+          c.id === courseId ? { ...c, youngMode: !current } : c
+        )
+      }))
     );
   };
 
@@ -144,12 +161,25 @@ export default function CourseManagement() {
                           </div>
 
                           <div className="flex items-center gap-3">
+                            {/* Young Mode Toggle */}
+                            <button
+                              onClick={() => toggleYoungMode(course.id)}
+                              title={course.youngMode ? "Young Students Mode Active" : "Enable Young Mode"}
+                              className={`p-2 rounded-xl border-2 transition-all ${
+                                course.youngMode
+                                  ? "border-secondary bg-secondary/10 text-secondary shadow-sm"
+                                  : "border-muted text-muted-foreground hover:border-primary/50"
+                              }`}
+                            >
+                              <Gamepad2 className={`w-5 h-5 ${course.youngMode ? "animate-pulse" : ""}`} />
+                            </button>
+
                             {/* Active/Inactive Toggle */}
                             <button
                               onClick={() => toggleCourseActive(classData.id, course.id)}
                               className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all ${
                                 course.active
-                                  ? "border-secondary bg-secondary/10 text-secondary"
+                                  ? "border-primary bg-primary/10 text-primary"
                                   : "border-muted-foreground/30 bg-muted text-muted-foreground"
                               }`}
                             >

@@ -27,7 +27,7 @@ export default function StudentDashboard() {
       title: "Chemical Bonding Quiz",
       course: "Chemistry Basics",
       dueDate: "Mar 15, 2026",
-      status: "submitted",
+      status: "graded",
       points: 75,
       score: 68,
     },
@@ -94,13 +94,8 @@ export default function StudentDashboard() {
                           Pending
                         </span>
                       )}
-                      {hw.status === "submitted" && (
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                          Submitted
-                        </span>
-                      )}
                       {hw.status === "graded" && (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                           Graded
                         </span>
                       )}

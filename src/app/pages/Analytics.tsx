@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import TeacherLayout from "../components/TeacherLayout";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from "recharts";
-import { AlertCircle, TrendingUp, TrendingDown, Eye, EyeOff, Users, User, BookOpen, Video, Headphones, Image as ImageIcon, Lock, CheckCircle, Clock, Circle, ChevronDown, ChevronUp, Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { AlertCircle, TrendingUp, TrendingDown, Eye, EyeOff, Users, User, BookOpen, Video, Headphones, Image as ImageIcon, Lock, CheckCircle, Clock, Circle, ChevronDown, ChevronUp, Sparkles, Loader2, RefreshCw, MessageSquare, Send } from "lucide-react";
 import { analyzeErrorPatterns } from "../../lib/gemini";
 
 type ViewMode = "class" | "student";
@@ -32,6 +32,17 @@ export default function Analytics() {
     best: true,
     worst: true,
   });
+  const [feedbackText, setFeedbackText] = useState("");
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [showFeedbackSuccess, setShowFeedbackSuccess] = useState(false);
+  const [youngStudentsMode, setYoungStudentsMode] = useState(false);
+
+  useEffect(() => {
+    if (selectedClass) {
+      const mode = localStorage.getItem(`youngMode_${selectedClass}`) === "true";
+      setYoungStudentsMode(mode);
+    }
+  }, [selectedClass]);
 
   const classes = [
     { id: 1, name: "Mathematics 101 - Section A" },
@@ -301,16 +312,34 @@ export default function Analytics() {
         {viewMode === "student" && showAnalytics && (
           <div className="mb-6">
             <label className="block text-sm mb-2">Select Student</label>
-            <select
-              className="px-4 py-3 rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              value={selectedStudentView}
-              onChange={(e) => setSelectedStudentView(e.target.value)}
-            >
-              <option value="">Select a Student</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <select
+                  className="px-4 py-3 rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  value={selectedStudentView}
+                  onChange={(e) => {
+                    setSelectedStudentView(e.target.value);
+                    setShowFeedbackSuccess(false);
+                    setFeedbackText("");
+                  }}
+                >
+                  <option value="">Select a Student</option>
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+
+                {youngStudentsMode && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl border bg-secondary/10 border-secondary text-secondary shadow-sm">
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                    <span className="text-sm font-medium">Young Mode Enabled</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex bg-muted p-1 rounded-xl border border-border">
+              </div>
+            </div>
           </div>
         )}
 
@@ -543,6 +572,67 @@ export default function Analytics() {
                   <ChevronDown className="w-4 h-4" />
                 )}
               </button>
+            </div>
+
+            {/* Personalized Feedback Section */}
+            <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                <h2 className="text-xl">Send Personalized Feedback</h2>
+              </div>
+              
+              {showFeedbackSuccess ? (
+                <div className="bg-secondary/10 border border-secondary/20 rounded-xl p-6 text-center animate-in fade-in zoom-in duration-300">
+                  <div className="bg-secondary/20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6 text-secondary" />
+                  </div>
+                  <h3 className="text-lg font-medium text-secondary mb-1">Feedback Sent!</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your feedback has been shared with {currentStudent.name}.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      setShowFeedbackSuccess(false);
+                      setFeedbackText("");
+                    }}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Send another message
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <textarea
+                    rows={3}
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder={`Write a message to support ${currentStudent.name}'s progression...`}
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-input-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => {
+                        if (!feedbackText.trim()) return;
+                        setIsSendingFeedback(true);
+                        // Mock sending
+                        setTimeout(() => {
+                          setIsSendingFeedback(false);
+                          setShowFeedbackSuccess(true);
+                        }, 1000);
+                      }}
+                      disabled={isSendingFeedback || !feedbackText.trim()}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSendingFeedback ? (
+                        <Clock className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      <span>{isSendingFeedback ? "Sending..." : "Send Feedback"}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Detailed View (conditionally shown) */}
